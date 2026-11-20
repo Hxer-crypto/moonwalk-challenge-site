@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#090611">
+  <meta name="description" content="Moonwalk Challenge: um jogo de coleta em dez fases inspirado no universo dos palcos.">
+  <title>Moonwalk Challenge</title>
+  <style>
+    :root { color-scheme: dark; font-family: system-ui, sans-serif; background: #090611; color: #f8f2ff; }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; background: radial-gradient(ellipse at 50% 0, #291741, #090611 62%); }
+    main { width: min(1120px, 100%); margin: 0 auto; padding: clamp(18px, 4vw, 42px); }
+    header { text-align: center; padding: 4px 0 20px; }
+    h1 { margin: 0 0 8px; color: #ffd650; font-size: clamp(1.8rem, 5vw, 3.2rem); letter-spacing: .04em; }
+    header p { margin: 0; color: #d4c8e5; }
+    .stage { position: relative; overflow: hidden; width: 100%; aspect-ratio: 16 / 9; min-height: 220px; border: 1px solid #755ca1; border-radius: 16px; background: #05040a; box-shadow: 0 18px 60px #0009; }
+    iframe { display: block; width: 100%; height: 100%; border: 0; background: #05040a; }
+    .cover { position: absolute; inset: 0; display: grid; place-content: center; gap: 14px; padding: 20px; text-align: center; background: linear-gradient(#0d0919d9, #0d0919eb); }
+    .cover[hidden] { display: none; }
+    .cover p { max-width: 34rem; margin: 0 auto; color: #ddd2ed; }
+    button { min-height: 52px; border: 0; border-radius: 12px; padding: 12px 24px; background: #ffd650; color: #1c1028; font-size: 1rem; font-weight: 800; cursor: pointer; }
+    button:hover { background: #ffe78e; }
+    button:focus-visible { outline: 3px solid white; outline-offset: 3px; }
+    .bar { display: flex; justify-content: center; gap: 12px; margin: 14px 0 22px; }
+    .bar button:last-child { background: #35244d; color: white; border: 1px solid #8566aa; }
+    .instructions { max-width: 780px; margin: 0 auto; color: #e2d8ef; line-height: 1.55; }
+    .instructions h2 { color: #ffd650; font-size: 1.1rem; }
+    .rotate { display: none; color: #ffd650; text-align: center; }
+    @media (orientation: portrait) and (max-width: 760px) {
+      main { padding: 14px; }
+      .stage { min-height: 0; }
+      .rotate { display: block; }
+      .cover p { font-size: .9rem; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>MOONWALK CHALLENGE</h1>
+      <p>10 fases de coleta, ritmo e desafio no palco.</p>
+    </header>
+    <p class="rotate">Durante as fases, vire o aparelho na horizontal para aproveitar a tela 16:9.</p>
+    <section class="stage" aria-label="Área do jogo">
+      <iframe id="game" title="Moonwalk Challenge" allow="autoplay; fullscreen; gamepad" allowfullscreen></iframe>
+      <div class="cover" id="cover">
+        <h2 id="status">Pronto para jogar?</h2>
+        <p id="message">O primeiro carregamento pode levar alguns instantes. No celular, os controles de toque aparecem durante a partida.</p>
+        <button id="play" type="button">JOGAR</button>
+      </div>
+    </section>
+    <div class="bar">
+      <button id="restart" type="button">REINICIAR JOGO</button>
+    </div>
+    <section class="instructions">
+      <h2>CONTROLES</h2>
+      <p><strong>PC:</strong> setas ou A/D para mover; Espaço para o poder especial; Esc ou P para pausar. Use mouse ou teclado nos menus.</p>
+      <p><strong>Celular:</strong> segure as setas virtuais para mover. Toque no botão do poder e no botão de pausa. O jogo mantém a proporção 16:9.</p>
+    </section>
+  </main>
+  <script>
+    const frame = document.querySelector('#game');
+    const cover = document.querySelector('#cover');
+    const status = document.querySelector('#status');
+    const message = document.querySelector('#message');
+    let started = false;
+    let loadTimer;
+
+    function startGame() {
+      if (started) return;
+      started = true;
+      status.textContent = 'Carregando o jogo…';
+      message.textContent = 'Aguarde enquanto os recursos são preparados.';
+      document.querySelector('#play').hidden = true;
+      frame.src = './jogo/';
+      loadTimer = setTimeout(() => {
+        status.textContent = 'O jogo ainda está iniciando';
+        message.textContent = 'Se a tela não avançar, use Reiniciar Jogo para tentar novamente.';
+        document.querySelector('#play').textContent = 'TENTAR NOVAMENTE';
+        document.querySelector('#play').hidden = false;
+        started = false;
+      }, 45000);
+    }
+
+    frame.addEventListener('load', () => {
+      clearTimeout(loadTimer);
+      setTimeout(() => { cover.hidden = true; }, 1400);
+    });
+    frame.addEventListener('error', () => {
+      clearTimeout(loadTimer);
+      status.textContent = 'Não foi possível carregar o jogo';
+      message.textContent = 'Verifique sua conexão e tente novamente.';
+      document.querySelector('#play').textContent = 'TENTAR NOVAMENTE';
+      document.querySelector('#play').hidden = false;
+      cover.hidden = false;
+      started = false;
+    });
+    document.querySelector('#play').addEventListener('click', startGame);
+    document.querySelector('#restart').addEventListener('click', () => {
+      if (!frame.src || frame.src === window.location.href) { startGame(); return; }
+      cover.hidden = false;
+      status.textContent = 'Reiniciando…';
+      message.textContent = 'O jogo vai começar novamente.';
+      frame.contentWindow.location.reload();
+    });
+  </script>
+</body>
+</html>
